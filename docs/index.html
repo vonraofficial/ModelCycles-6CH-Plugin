@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ModelCycles 6CH — Free VST3 / AU Companion Plugin</title>
+  <meta name="description" content="Free open-source VST3 & AU companion plugin for the Elektron Model:Cycles 6-Channel USB Audio mod. Restores hardware VOLUME+DIST, MUTE, and PAN behavior in any DAW." />
+  <style>
+    :root {
+      --bg-main: #0e1014;
+      --bg-panel: #161920;
+      --bg-card: #1b1f27;
+      --bg-control: #252a35;
+      --border: #2e3442;
+      --border-light: #3e4658;
+      --orange: #ff6a1a;
+      --orange-glow: rgba(255, 106, 26, 0.22);
+      --cyan: #38bdf8;
+      --green: #22c55e;
+      --red: #ef4444;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg-main);
+      color: var(--text);
+      font-family: var(--sans);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* Top Navigation */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(14, 16, 20, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-inner {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 0.85rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--orange);
+      box-shadow: 0 0 10px var(--orange);
+    }
+
+    .brand-tag {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      padding: 0.15rem 0.45rem;
+      border-radius: 999px;
+      background: var(--bg-control);
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    .lang-switch {
+      display: inline-flex;
+      background: var(--bg-control);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2px;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+    }
+
+    .lang-btn {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      padding: 0.25rem 0.55rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 600;
+      transition: all 0.15s ease;
+    }
+
+    .lang-btn.active {
+      background: var(--orange);
+      color: #0e1014;
+    }
+
+    /* Layout Container */
+    main {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 0 1.25rem 5rem;
+    }
+
+    /* Hero */
+    .hero {
+      padding: 4rem 0 3.25rem;
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 2.75rem;
+      align-items: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--orange);
+      background: rgba(255, 106, 26, 0.1);
+      border: 1px solid rgba(255, 106, 26, 0.3);
+      padding: 0.3rem 0.7rem;
+      border-radius: 999px;
+      margin-bottom: 1.15rem;
+    }
+
+    h1 {
+      font-size: clamp(2.1rem, 4.2vw, 3.15rem);
+      line-height: 1.08;
+      letter-spacing: -0.035em;
+      margin-bottom: 1.1rem;
+    }
+
+    .hero-sub {
+      color: var(--muted);
+      font-size: 1.05rem;
+      margin-bottom: 1.75rem;
+      max-width: 52ch;
+    }
+
+    .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.55rem;
+      padding: 0.78rem 1.25rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.93rem;
+      cursor: pointer;
+      transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease;
+      border: 1px solid transparent;
+    }
+
+    .btn:active { transform: translateY(1px); }
+
+    .btn-primary {
+      background: var(--orange);
+      color: #0e1014;
+      box-shadow: 0 8px 24px -8px var(--orange-glow);
+    }
+
+    .btn-primary:hover { background: #ff7e38; }
+
+    .btn-secondary {
+      background: var(--bg-card);
+      color: var(--text);
+      border-color: var(--border-light);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-control);
+      border-color: var(--muted);
+    }
+
+    .hero-meta {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--muted);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .hero-meta a {
+      color: var(--text);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    /* Interactive Plugin Preview Widget */
+    .plugin-shell {
+      background: #15171c;
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.03);
+      user-select: none;
+    }
+
+    .plugin-header {
+      background: #1e2128;
+      border-bottom: 1px solid #343946;
+      padding: 0.65rem 0.9rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .plugin-title {
+      color: var(--orange);
+      font-weight: 800;
+      font-size: 0.95rem;
+      line-height: 1.1;
+    }
+
+    .plugin-sub {
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.65rem;
+    }
+
+    .plugin-midi-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    .led {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #282c36;
+      border: 1px solid #3c4353;
+      transition: background 0.1s ease, box-shadow 0.1s ease;
+    }
+
+    .led.lit {
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+    }
+
+    .fake-dropdown {
+      background: #282c36;
+      border: 1px solid #343946;
+      border-radius: 5px;
+      padding: 0.22rem 0.55rem;
+      font-size: 0.73rem;
+      color: var(--text);
+      font-family: var(--mono);
+    }
+
+    .plugin-body {
+      padding: 0.85rem;
+    }
+
+    .track-row {
+      display: grid;
+      grid-template-columns: auto repeat(6, 1fr);
+      gap: 0.4rem;
+      align-items: center;
+      margin-bottom: 0.8rem;
+    }
+
+    .track-label {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--muted);
+      padding-right: 0.25rem;
+    }
+
+    .track-pad {
+      background: #282c36;
+      border: 1px solid #343946;
+      color: var(--muted);
+      border-radius: 6px;
+      padding: 0.35rem 0;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.12s ease;
+    }
+
+    .track-pad.active {
+      background: var(--orange);
+      border-color: #ff8c4d;
+      color: #15171c;
+    }
+
+    .controls-card {
+      background: #1e2128;
+      border: 1px solid #343946;
+      border-radius: 8px;
+      padding: 0.9rem 0.85rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 0.85rem;
+      align-items: center;
+    }
+
+    .sim-ctrl {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .sim-ctrl label {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .sim-ctrl label span {
+      color: var(--text);
+    }
+
+    input[type="range"].elektron-range {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 999px;
+      background: #282c36;
+      outline: none;
+    }
+
+    input[type="range"].elektron-range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--orange);
+      border: 2px solid #15171c;
+      cursor: pointer;
+    }
+
+    input[type="range"].elektron-range.cyan::-webkit-slider-thumb {
+      background: var(--cyan);
+    }
+
+    .curve-bar-wrap {
+      margin-top: 0.2rem;
+      height: 6px;
+      border-radius: 999px;
+      background: #15171c;
+      overflow: hidden;
+      display: flex;
+    }
+
+    .curve-fill {
+      height: 100%;
+      background: var(--orange);
+      transition: width 0.08s ease;
+    }
+
+    .curve-zone {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--muted);
+    }
+
+    .mute-btn {
+      background: #282c36;
+      border: 1px solid #343946;
+      color: var(--text);
+      border-radius: 8px;
+      width: 64px;
+      height: 64px;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.12s ease;
+    }
+
+    .mute-btn.muted {
+      background: var(--red);
+      border-color: #f87171;
+      color: #fff;
+    }
+
+    .plugin-footer {
+      margin-top: 0.7rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+
+    .demo-caption {
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 0.65rem;
+    }
+
+    /* Sections */
+    section {
+      padding: 3rem 0;
+      border-top: 1px solid var(--border);
+    }
+
+    h2 {
+      font-size: 1.65rem;
+      letter-spacing: -0.025em;
+      margin-bottom: 0.5rem;
+    }
+
+    .section-lead {
+      color: var(--muted);
+      margin-bottom: 1.75rem;
+      max-width: 66ch;
+    }
+
+    /* Feature Grid */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+
+    .card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem;
+    }
+
+    .card-tag {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--orange);
+      margin-bottom: 0.5rem;
+    }
+
+    .card h3 {
+      font-size: 1.02rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .card p {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    /* Download Section */
+    .download-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.15rem;
+    }
+
+    .dl-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1.15rem;
+    }
+
+    .dl-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    .dl-badge {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      background: var(--bg-control);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .dl-card p {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-top: 0.45rem;
+    }
+
+    .dl-card .btn { width: 100%; }
+
+    /* Setup Steps & OS Tabs */
+    .tabs {
+      display: inline-flex;
+      gap: 0.4rem;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      padding: 0.3rem;
+      border-radius: 8px;
+      margin-bottom: 1.25rem;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      padding: 0.45rem 0.95rem;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+    }
+
+    .tab-btn.active {
+      background: var(--bg-control);
+      color: var(--text);
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.25rem;
+    }
+
+    .step-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .step-list li {
+      display: grid;
+      grid-template-columns: 26px 1fr;
+      gap: 0.7rem;
+      align-items: start;
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    .step-list li strong { color: var(--text); }
+
+    .step-num {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      background: var(--bg-control);
+      border: 1px solid var(--border-light);
+      color: var(--orange);
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+    }
+
+    code {
+      font-family: var(--mono);
+      font-size: 0.84em;
+      background: var(--bg-control);
+      border: 1px solid var(--border);
+      padding: 0.1rem 0.38rem;
+      border-radius: 4px;
+      color: var(--text);
+    }
+
+    .code-block {
+      position: relative;
+      background: #0b0d11;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.9rem 1rem;
+      margin-top: 0.9rem;
+      overflow-x: auto;
+    }
+
+    .code-block pre {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: #cbd5e1;
+      line-height: 1.55;
+      padding-right: 4.5rem;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 0.65rem;
+      right: 0.65rem;
+      background: var(--bg-control);
+      border: 1px solid var(--border-light);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      padding: 0.28rem 0.6rem;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .copy-btn:hover { border-color: var(--orange); color: var(--orange); }
+
+    .note-box {
+      margin-top: 1.25rem;
+      background: rgba(255, 106, 26, 0.07);
+      border: 1px solid rgba(255, 106, 26, 0.28);
+      border-radius: 8px;
+      padding: 0.9rem 1.1rem;
+      font-size: 0.88rem;
+      color: #e2e8f0;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem 1.25rem 3rem;
+      max-width: 1040px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 1.25rem;
+    }
+
+    .footer-links a:hover { color: var(--text); }
+
+    /* Responsive */
+    @media (max-width: 860px) {
+      .hero { grid-template-columns: 1fr; padding-top: 2.5rem; }
+      .grid-3 { grid-template-columns: 1fr; }
+      .download-grid, .steps-grid { grid-template-columns: 1fr; }
+      .nav-links .hide-sm { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="nav-inner">
+      <a href="#" class="brand">
+        <span class="brand-dot"></span>
+        <span>ModelCycles 6CH</span>
+        <span class="brand-tag" id="version-badge">v1.0.0</span>
+      </a>
+      <nav class="nav-links">
+        <a href="#features" class="hide-sm" data-en="Features" data-it="Funzioni">Features</a>
+        <a href="#download" data-en="Download" data-it="Download">Download</a>
+        <a href="#setup" data-en="Setup" data-it="Guida">Setup</a>
+        <a href="https://github.com/vonraofficial/ModelCycles-6CH-Plugin" target="_blank" rel="noopener">GitHub</a>
+        <div class="lang-switch" role="group" aria-label="Language">
+          <button class="lang-btn active" data-lang="en">EN</button>
+          <button class="lang-btn" data-lang="it">IT</button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <div class="hero">
+      <div>
+        <div class="eyebrow">VST3 &amp; AU &bull; macOS &amp; Windows &bull; Open Source</div>
+        <h1 data-en="Control your 6CH stems." data-it="Controlla i tuoi 6 canali.">Control your 6CH stems.</h1>
+        <p class="hero-sub"
+           data-en="A free, lightweight companion plugin for the Elektron Model:Cycles 6-Channel USB Audio mod. Drop it on tracks 1–6 in any DAW to restore smooth VOLUME+DIST attenuation, Mute, and Pan right from your hardware knobs."
+           data-it="Un plugin gratuito e leggero per la mod 6-Channel USB Audio dell'Elektron Model:Cycles. Caricalo sulle tracce 1–6 in qualsiasi DAW per ripristinare volume a zero, Mute e Pan direttamente dalle manopole fisiche.">
+          A free, lightweight companion plugin for the Elektron Model:Cycles 6-Channel USB Audio mod. Drop it on tracks 1–6 in any DAW to restore smooth VOLUME+DIST attenuation, Mute, and Pan right from your hardware knobs.
+        </p>
+
+        <div class="cta-row">
+          <a class="btn btn-primary" href="#download" data-en="Download Free Plugin" data-it="Scarica il Plugin Gratis">Download Free Plugin</a>
+          <a class="btn btn-secondary" href="#setup" data-en="Read Setup Guide" data-it="Guida Rapida">Read Setup Guide</a>
+        </div>
+
+        <div class="hero-meta">
+          <span>AGPL-3.0</span>
+          <span>&bull;</span>
+          <span data-en="REAPER, Ableton, Logic, FL Studio, Cubase, Bitwig" data-it="REAPER, Ableton, Logic, FL Studio, Cubase, Bitwig">REAPER, Ableton, Logic, FL Studio, Cubase, Bitwig</span>
+        </div>
+      </div>
+
+      <!-- INTERACTIVE PLUGIN MOCKUP -->
+      <div>
+        <div class="plugin-shell" aria-label="Interactive plugin preview">
+          <div class="plugin-header">
+            <div>
+              <div class="plugin-title">M:C 6CH</div>
+              <div class="plugin-sub">CC7 / CC94 / CC10</div>
+            </div>
+            <div class="plugin-midi-badge">
+              <span class="led" id="sim-led"></span>
+              <span>MIDI</span>
+              <span class="fake-dropdown">Direct: Model:Cycles</span>
+            </div>
+          </div>
+
+          <div class="plugin-body">
+            <div class="track-row">
+              <span class="track-label">MIDI CH</span>
+              <button class="track-pad active" data-ch="1">T1</button>
+              <button class="track-pad" data-ch="2">T2</button>
+              <button class="track-pad" data-ch="3">T3</button>
+              <button class="track-pad" data-ch="4">T4</button>
+              <button class="track-pad" data-ch="5">T5</button>
+              <button class="track-pad" data-ch="6">T6</button>
+            </div>
+
+            <div class="controls-card">
+              <div class="sim-ctrl">
+                <label>VOL + DIST <span id="sim-vol-val">64 (UNITY)</span></label>
+                <input type="range" min="0" max="127" value="64" class="elektron-range" id="sim-vol" />
+                <div class="curve-bar-wrap"><div class="curve-fill" id="sim-vol-bar" style="width:100%"></div></div>
+                <div class="curve-zone" id="sim-vol-zone" data-en="0–64: DAW volume | 64–127: HW drive" data-it="0–64: volume DAW | 64–127: drive HW">0–64: DAW volume | 64–127: HW drive</div>
+              </div>
+
+              <div class="sim-ctrl">
+                <label>PAN <span id="sim-pan-val">CENTER</span></label>
+                <input type="range" min="0" max="127" value="64" class="elektron-range cyan" id="sim-pan" />
+                <div class="curve-zone" id="sim-pan-zone" data-en="Mono stem to stereo output" data-it="Stem mono su uscita stereo">Mono stem to stereo output</div>
+              </div>
+
+              <button class="mute-btn" id="sim-mute">MUTE</button>
+            </div>
+
+            <div class="plugin-footer">
+              <span id="sim-ch-label">CH 1 &bull; IN: MONO L+R</span>
+              <span id="sim-gain-label">Gain: 0.0 dB</span>
+            </div>
+          </div>
+        </div>
+        <p class="demo-caption"
+           data-en="Try moving the controls above to preview how CC 7 splits clean volume (0–64) and hardware drive (64–127)."
+           data-it="Prova a muovere i controlli qui sopra per vedere come il CC 7 gestisce il volume pulito (0–64) e la distorsione hardware (64–127).">
+          Try moving the controls above to preview how CC 7 splits clean volume (0–64) and hardware drive (64–127).
+        </p>
+      </div>
+    </div>
+
+    <!-- WHY / FEATURES -->
+    <section id="features">
+      <h2 data-en="Why it exists" data-it="Perché esiste questo plugin">Why it exists</h2>
+      <p class="section-lead"
+         data-en="In 6-channel USB Audio mode (Modded-Cycles / ms-multi-output), the Model:Cycles taps each voice pre-mixer. Turning VOLUME+DIST down to 0 removes overdrive, but the dry stem never drops to silence. ModelCycles 6CH fixes this over the same USB cable."
+         data-it="In modalità 6 canali USB Audio (Modded-Cycles / ms-multi-output), il Model:Cycles preleva le 6 voci prima del mixer. Abbassando VOLUME+DIST a 0 sparisce la distorsione, ma il volume base non va mai a zero. ModelCycles 6CH risolve il problema usando lo stesso cavo USB.">
+        In 6-channel USB Audio mode (Modded-Cycles / ms-multi-output), the Model:Cycles taps each voice pre-mixer. Turning VOLUME+DIST down to 0 removes overdrive, but the dry stem never drops to silence. ModelCycles 6CH fixes this over the same USB cable.
+      </p>
+
+      <div class="grid-3">
+        <div class="card">
+          <span class="card-tag">CC 7 &bull; VOLUME + DIST</span>
+          <h3 data-en="True Hardware Taper" data-it="Curva Fedele all'Hardware">True Hardware Taper</h3>
+          <p data-en="0–64 smoothly attenuates from complete silence (-∞ dB) to 0 dB unity. 64–127 stays locked at 0 dB so the hardware overdrive passes through without double-boosting."
+             data-it="Da 0 a 64 attenua fluidamente dal silenzio totale (-∞ dB) a 0 dB. Da 64 a 127 resta fisso a 0 dB lasciando passare la distorsione hardware senza doppi boost.">
+            0–64 smoothly attenuates from complete silence (-∞ dB) to 0 dB unity. 64–127 stays locked at 0 dB so the hardware overdrive passes through without double-boosting.
+          </p>
+        </div>
+
+        <div class="card">
+          <span class="card-tag">CC 94 / CC 10 / CC 95</span>
+          <h3 data-en="Mute, Pan & Track Level" data-it="Mute, Pan e Track Level">Mute, Pan &amp; Track Level</h3>
+          <p data-en="Restores click-free track Mute (CC 94), converts your mono stems to stereo with hardware Pan (CC 10), and optionally listens to LEVEL/DATA (CC 95)."
+             data-it="Ripristina il Mute senza click (CC 94), trasforma gli stem mono in stereo usando il Pan hardware (CC 10) e supporta opzionalmente LEVEL/DATA (CC 95).">
+            Restores click-free track Mute (CC 94), converts your mono stems to stereo with hardware Pan (CC 10), and optionally listens to LEVEL/DATA (CC 95).
+          </p>
+        </div>
+
+        <div class="card">
+          <span class="card-tag">ZERO ROUTING</span>
+          <h3 data-en="Direct USB MIDI or DAW MIDI" data-it="MIDI USB Diretto o DAW MIDI">Direct USB MIDI or DAW MIDI</h3>
+          <p data-en="Select Model:Cycles directly in the plugin header so all 6 instances share one MIDI port with zero DAW routing — or use DAW MIDI mode to record automation."
+             data-it="Seleziona il Model:Cycles direttamente nel menu del plugin per condividere una sola porta MIDI tra tutte le 6 tracce senza routing — oppure usa DAW MIDI per registrare automazioni.">
+            Select Model:Cycles directly in the plugin header so all 6 instances share one MIDI port with zero DAW routing — or use DAW MIDI mode to record automation.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- DOWNLOAD -->
+    <section id="download">
+      <h2 data-en="Download" data-it="Download">Download</h2>
+      <p class="section-lead"
+         data-en="Free, no account, no DRM. Pick your operating system below to download the latest build directly from GitHub Releases."
+         data-it="Gratuito, open source, senza account. Scegli il tuo sistema operativo per scaricare direttamente l'ultima versione da GitHub Releases.">
+        Free, no account, no DRM. Pick your operating system below to download the latest build directly from GitHub Releases.
+      </p>
+
+      <div class="download-grid">
+        <div class="dl-card">
+          <div>
+            <div class="dl-card-head">
+              <h3>macOS (Universal)</h3>
+              <span class="dl-badge">VST3 + AU</span>
+            </div>
+            <p data-en="Native Apple Silicon (M1–M4) & Intel 64-bit. Works in REAPER, Logic Pro, Ableton Live, GarageBand, Cubase, Bitwig, FL Studio."
+               data-it="Nativo Apple Silicon (M1–M4) e Intel 64-bit. Compatibile con REAPER, Logic Pro, Ableton Live, GarageBand, Cubase, Bitwig, FL Studio.">
+              Native Apple Silicon (M1–M4) &amp; Intel 64-bit. Works in REAPER, Logic Pro, Ableton Live, GarageBand, Cubase, Bitwig, FL Studio.
+            </p>
+          </div>
+          <a class="btn btn-primary"
+             href="https://github.com/vonraofficial/ModelCycles-6CH-Plugin/releases/latest/download/ModelCycles-6CH-macOS-Universal.zip"
+             data-en="Download for macOS (.zip)"
+             data-it="Scarica per macOS (.zip)">
+            Download for macOS (.zip)
+          </a>
+        </div>
+
+        <div class="dl-card">
+          <div>
+            <div class="dl-card-head">
+              <h3>Windows (64-bit)</h3>
+              <span class="dl-badge">VST3</span>
+            </div>
+            <p data-en="Windows 10 / 11 x64 VST3 bundle. Works in REAPER, Ableton Live, FL Studio, Cubase, Studio One, Bitwig."
+               data-it="Bundle VST3 per Windows 10 / 11 64-bit. Compatibile con REAPER, Ableton Live, FL Studio, Cubase, Studio One, Bitwig.">
+              Windows 10 / 11 x64 VST3 bundle. Works in REAPER, Ableton Live, FL Studio, Cubase, Studio One, Bitwig.
+            </p>
+          </div>
+          <a class="btn btn-primary"
+             href="https://github.com/vonraofficial/ModelCycles-6CH-Plugin/releases/latest/download/ModelCycles-6CH-Windows-x64.zip"
+             data-en="Download for Windows (.zip)"
+             data-it="Scarica per Windows (.zip)">
+            Download for Windows (.zip)
+          </a>
+        </div>
+      </div>
+
+      <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--muted);">
+        <span data-en="Looking for older versions or source code?" data-it="Cerchi versioni precedenti o il codice sorgente?">Looking for older versions or source code?</span>
+        <a href="https://github.com/vonraofficial/ModelCycles-6CH-Plugin/releases" target="_blank" rel="noopener" style="color: var(--text); text-decoration: underline; margin-left: 0.35rem;" data-en="View all GitHub Releases →" data-it="Vai a tutte le Release su GitHub →">View all GitHub Releases &rarr;</a>
+      </p>
+    </section>
+
+    <!-- INSTALLATION & SETUP -->
+    <section id="setup">
+      <h2 data-en="Installation &amp; Setup" data-it="Installazione e Configurazione">Installation &amp; Setup</h2>
+      <p class="section-lead"
+         data-en="Takes less than two minutes. Copy the plugin to your system folder, enable MIDI CC output on your Model:Cycles, and drop one instance per track."
+         data-it="Ci vogliono meno di due minuti. Copia il plugin nella cartella di sistema, attiva l'uscita MIDI CC sul Model:Cycles e carica un'istanza per traccia.">
+        Takes less than two minutes. Copy the plugin to your system folder, enable MIDI CC output on your Model:Cycles, and drop one instance per track.
+      </p>
+
+      <div class="tabs" role="tablist">
+        <button class="tab-btn active" data-tab="macos">macOS</button>
+        <button class="tab-btn" data-tab="windows">Windows</button>
+      </div>
+
+      <!-- macOS Install Tab -->
+      <div class="tab-panel active" id="tab-macos">
+        <div class="card">
+          <ol class="step-list">
+            <li><span class="step-num">1</span><span data-en="Unzip <code>ModelCycles-6CH-macOS-Universal.zip</code>." data-it="Estrai il file <code>ModelCycles-6CH-macOS-Universal.zip</code>.">Unzip <code>ModelCycles-6CH-macOS-Universal.zip</code>.</span></li>
+            <li><span class="step-num">2</span><span data-en="Copy <code>ModelCycles 6CH.vst3</code> into <code>/Library/Audio/Plug-Ins/VST3/</code> and/or <code>ModelCycles 6CH.component</code> into <code>/Library/Audio/Plug-Ins/Components/</code>." data-it="Copia <code>ModelCycles 6CH.vst3</code> in <code>/Library/Audio/Plug-Ins/VST3/</code> e/o <code>ModelCycles 6CH.component</code> in <code>/Library/Audio/Plug-Ins/Components/</code>.">Copy <code>ModelCycles 6CH.vst3</code> into <code>/Library/Audio/Plug-Ins/VST3/</code> and/or <code>ModelCycles 6CH.component</code> into <code>/Library/Audio/Plug-Ins/Components/</code>.</span></li>
+            <li><span class="step-num">3</span><span data-en="<strong>macOS Gatekeeper (unsigned open-source plugin):</strong> open Terminal once and run the command below to allow macOS to load the plugin, then restart/rescan your DAW." data-it="<strong>Gatekeeper su macOS (plugin open-source gratuito):</strong> apri il Terminale una sola volta ed esegui il comando qui sotto per sbloccare il plugin, poi riavvia la tua DAW."><strong>macOS Gatekeeper (unsigned open-source plugin):</strong> open Terminal once and run the command below to allow macOS to load the plugin, then restart/rescan your DAW.</span></li>
+          </ol>
+          <div class="code-block">
+            <button class="copy-btn" data-copy="mac-cmd" data-en="Copy" data-it="Copia">Copy</button>
+            <pre id="mac-cmd">xattr -cr "/Library/Audio/Plug-Ins/VST3/ModelCycles 6CH.vst3"
+xattr -cr "/Library/Audio/Plug-Ins/Components/ModelCycles 6CH.component"</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Windows Install Tab -->
+      <div class="tab-panel" id="tab-windows">
+        <div class="card">
+          <ol class="step-list">
+            <li><span class="step-num">1</span><span data-en="Unzip <code>ModelCycles-6CH-Windows-x64.zip</code>." data-it="Estrai il file <code>ModelCycles-6CH-Windows-x64.zip</code>.">Unzip <code>ModelCycles-6CH-Windows-x64.zip</code>.</span></li>
+            <li><span class="step-num">2</span><span data-en="Copy the entire <code>ModelCycles 6CH.vst3</code> folder into <code>C:\Program Files\Common Files\VST3\</code>." data-it="Copia l'intera cartella <code>ModelCycles 6CH.vst3</code> dentro <code>C:\Program Files\Common Files\VST3\</code>.">Copy the entire <code>ModelCycles 6CH.vst3</code> folder into <code>C:\Program Files\Common Files\VST3\</code>.</span></li>
+            <li><span class="step-num">3</span><span data-en="Restart or rescan VST3 plugins in your DAW." data-it="Riavvia o fai la scansione dei plugin VST3 nella tua DAW.">Restart or rescan VST3 plugins in your DAW.</span></li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="steps-grid" style="margin-top: 1.5rem;">
+        <div class="card">
+          <span class="card-tag">STEP A</span>
+          <h3 style="margin-bottom: 0.9rem;" data-en="On your Model:Cycles" data-it="Sul tuo Model:Cycles">On your Model:Cycles</h3>
+          <ol class="step-list">
+            <li><span class="step-num">1</span><span data-en="<strong>SETTINGS &rarr; MIDI &rarr; PORTS</strong>: set <code>OUT TO</code> to <code>USB</code> (or <code>M+U</code>)." data-it="<strong>SETTINGS &rarr; MIDI &rarr; PORTS</strong>: imposta <code>OUT TO</code> su <code>USB</code> (o <code>M+U</code>)."><strong>SETTINGS &rarr; MIDI &rarr; PORTS</strong>: set <code>OUT TO</code> to <code>USB</code> (or <code>M+U</code>).</span></li>
+            <li><span class="step-num">2</span><span data-en="<strong>SETTINGS &rarr; MIDI &rarr; FILTER</strong>: set <code>ENCS</code> to <code>I+E</code>." data-it="<strong>SETTINGS &rarr; MIDI &rarr; FILTER</strong>: imposta <code>ENCS</code> su <code>I+E</code>."><strong>SETTINGS &rarr; MIDI &rarr; FILTER</strong>: set <code>ENCS</code> to <code>I+E</code>.</span></li>
+            <li><span class="step-num">3</span><span data-en="<strong>SETTINGS &rarr; MIDI &rarr; OUT CHAN</strong>: set <code>T1–T6</code> to channels <code>1–6</code>." data-it="<strong>SETTINGS &rarr; MIDI &rarr; OUT CHAN</strong>: imposta <code>T1–T6</code> sui canali <code>1–6</code>."><strong>SETTINGS &rarr; MIDI &rarr; OUT CHAN</strong>: set <code>T1–T6</code> to channels <code>1–6</code>.</span></li>
+            <li><span class="step-num">4</span><span data-en="For each track <strong>T1–T6</strong>, press <code>FUNC + TRACK</code> and enable <code>MOUT</code> <em>(saved per pattern)</em>." data-it="Su ciascuna traccia <strong>T1–T6</strong>, premi <code>FUNC + TRACK</code> e spunta <code>MOUT</code> <em>(salvato per pattern)</em>.">For each track <strong>T1–T6</strong>, press <code>FUNC + TRACK</code> and enable <code>MOUT</code> <em>(saved per pattern)</em>.</span></li>
+          </ol>
+        </div>
+
+        <div class="card">
+          <span class="card-tag">STEP B</span>
+          <h3 style="margin-bottom: 0.9rem;" data-en="In your DAW" data-it="Nella tua DAW">In your DAW</h3>
+          <ol class="step-list">
+            <li><span class="step-num">1</span><span data-en="Create 6 audio tracks receiving <code>Input 1</code> through <code>Input 6</code> from the Model:Cycles." data-it="Crea 6 tracce audio con ingressi da <code>Input 1</code> a <code>Input 6</code> del Model:Cycles.">Create 6 audio tracks receiving <code>Input 1</code> through <code>Input 6</code> from the Model:Cycles.</span></li>
+            <li><span class="step-num">2</span><span data-en="Insert <strong>ModelCycles 6CH</strong> as the first FX on each track." data-it="Inserisci <strong>ModelCycles 6CH</strong> come primo effetto su ogni traccia.">Insert <strong>ModelCycles 6CH</strong> as the first FX on each track.</span></li>
+            <li><span class="step-num">3</span><span data-en="Click <code>T1</code> through <code>T6</code> respectively on each instance." data-it="Clicca rispettivamente <code>T1</code> fino a <code>T6</code> su ciascuna traccia.">Click <code>T1</code> through <code>T6</code> respectively on each instance.</span></li>
+            <li><span class="step-num">4</span><span data-en="Pick <code>Direct: Elektron Model:Cycles</code> in the top-right dropdown for zero-routing setup, or leave <code>DAW MIDI</code> if routing MIDI inside your DAW." data-it="Scegli <code>Direct: Elektron Model:Cycles</code> nel menu in alto a destra per zero routing, oppure lascia <code>DAW MIDI</code> se invii il MIDI dalla DAW.">Pick <code>Direct: Elektron Model:Cycles</code> in the top-right dropdown for zero-routing setup, or leave <code>DAW MIDI</code> if routing MIDI inside your DAW.</span></li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="note-box"
+           data-en="<strong>Hardware limitation note:</strong> The Model:Cycles transmits MIDI CC only for physical knob turns and track mutes. Parameter Locks (P-Locks) and LFOs assigned to DIST do not send MIDI CC out. On Windows, if you use <code>Direct</code> MIDI mode, disable the Model:Cycles MIDI input in your DAW preferences so the plugin can open the port exclusively."
+           data-it="<strong>Nota sui limiti hardware:</strong> Il Model:Cycles invia MIDI CC solo quando muovi fisicamente le manopole o i Mute. Parameter Locks (P-Locks) e LFO assegnati a DIST non trasmettono CC. Su Windows, se usi la modalità <code>Direct</code> MIDI, disattiva l'ingresso MIDI del Model:Cycles nelle preferenze della DAW così il plugin può aprire la porta senza conflitti.">
+        <strong>Hardware limitation note:</strong> The Model:Cycles transmits MIDI CC only for physical knob turns and track mutes. Parameter Locks (P-Locks) and LFOs assigned to DIST do not send MIDI CC out. On Windows, if you use <code>Direct</code> MIDI mode, disable the Model:Cycles MIDI input in your DAW preferences so the plugin can open the port exclusively.
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div data-en="Independent open-source project (AGPL-3.0), not affiliated with Elektron."
+         data-it="Progetto open-source indipendente (AGPL-3.0), non affiliato a Elektron.">
+      Independent open-source project (AGPL-3.0), not affiliated with Elektron.
+    </div>
+    <div class="footer-links">
+      <a href="https://github.com/vonraofficial/ModelCycles-6CH-Plugin" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://github.com/vonraofficial/ModelCycles-6CH-Plugin/releases" target="_blank" rel="noopener">Releases</a>
+      <a href="https://github.com/vonraofficial/ModelCycles-6CH-Plugin/issues" target="_blank" rel="noopener" data-en="Report a bug" data-it="Segnala un bug">Report a bug</a>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      // 1. Language Switcher (EN / IT)
+      let currentLang = 'en';
+      const langButtons = document.querySelectorAll('.lang-btn');
+      function setLang(lang) {
+        currentLang = lang;
+        document.documentElement.lang = lang;
+        langButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.lang === lang));
+        document.querySelectorAll('[data-en][data-it]').forEach(el => {
+          el.innerHTML = el.dataset[lang];
+        });
+      }
+      langButtons.forEach(btn => btn.addEventListener('click', () => setLang(btn.dataset.lang)));
+
+      // 2. OS Install Tabs
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+          btn.classList.add('active');
+          document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // Auto-select Windows tab if user is on Windows
+      if (navigator.userAgent.toLowerCase().includes('win')) {
+        document.querySelector('.tab-btn[data-tab="windows"]').click();
+      }
+
+      // 3. Copy Terminal Command Button
+      document.querySelectorAll('.copy-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const text = document.getElementById(btn.dataset.copy).textContent;
+          navigator.clipboard.writeText(text).then(() => {
+            const orig = btn.dataset[currentLang];
+            btn.textContent = currentLang === 'it' ? 'Copiato!' : 'Copied!';
+            setTimeout(() => { btn.textContent = orig; }, 1600);
+          });
+        });
+      });
+
+      // 4. Interactive Plugin Preview Logic
+      const simLed = document.getElementById('sim-led');
+      const simVol = document.getElementById('sim-vol');
+      const simVolVal = document.getElementById('sim-vol-val');
+      const simVolBar = document.getElementById('sim-vol-bar');
+      const simPan = document.getElementById('sim-pan');
+      const simPanVal = document.getElementById('sim-pan-val');
+      const simMute = document.getElementById('sim-mute');
+      const simChLabel = document.getElementById('sim-ch-label');
+      const simGainLabel = document.getElementById('sim-gain-label');
+      const trackPads = document.querySelectorAll('.track-pad');
+
+      let ledTimer = null;
+      let isMuted = false;
+
+      function pulseLed() {
+        simLed.classList.add('lit');
+        clearTimeout(ledTimer);
+        ledTimer = setTimeout(() => simLed.classList.remove('lit'), 160);
+      }
+
+      function updateSim() {
+        const v = parseInt(simVol.value, 10);
+        const p = parseInt(simPan.value, 10);
+
+        let linGain = v >= 64 ? 1.0 : Math.pow(v / 64.0, 1.6);
+        if (v === 0) {
+          simVolVal.textContent = '0 (-inf dB)';
+        } else if (v < 64) {
+          const db = (20 * Math.log10(linGain)).toFixed(1);
+          simVolVal.textContent = v + ' (' + db + ' dB)';
+        } else if (v === 64) {
+          simVolVal.textContent = '64 (UNITY)';
+        } else {
+          simVolVal.textContent = v + ' (HW DRIVE)';
+        }
+
+        simVolBar.style.width = (isMuted ? 0 : Math.round(linGain * 100)) + '%';
+
+        if (p === 64) simPanVal.textContent = 'CENTER';
+        else if (p < 64) simPanVal.textContent = 'L ' + (64 - p);
+        else simPanVal.textContent = 'R ' + (p - 64);
+
+        if (isMuted) {
+          simGainLabel.textContent = 'MUTED (-inf dB)';
+        } else if (linGain <= 0.0001) {
+          simGainLabel.textContent = 'Gain: -inf dB';
+        } else {
+          const db = (20 * Math.log10(linGain)).toFixed(1);
+          simGainLabel.textContent = 'Gain: ' + db + ' dB';
+        }
+      }
+
+      simVol.addEventListener('input', () => { pulseLed(); updateSim(); });
+      simPan.addEventListener('input', () => { pulseLed(); updateSim(); });
+      simMute.addEventListener('click', () => {
+        isMuted = !isMuted;
+        simMute.classList.toggle('muted', isMuted);
+        pulseLed();
+        updateSim();
+      });
+
+      trackPads.forEach(pad => {
+        pad.addEventListener('click', () => {
+          trackPads.forEach(p => p.classList.remove('active'));
+          pad.classList.add('active');
+          simChLabel.textContent = 'CH ' + pad.dataset.ch + ' \u2022 IN: MONO L+R';
+        });
+      });
+
+      updateSim();
+
+      // 5. Fetch live latest release tag from GitHub (silent fallback to v1.0.0)
+      fetch('https://api.github.com/repos/vonraofficial/ModelCycles-6CH-Plugin/releases/latest')
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (data && data.tag_name) {
+            document.getElementById('version-badge').textContent = data.tag_name;
+          }
+        })
+        .catch(() => {});
+    })();
+  </script>
+</body>
+</html>
