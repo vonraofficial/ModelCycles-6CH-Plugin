@@ -1,0 +1,9 @@
+[text]
+build/
+cmake-build-*/
+dist/
+*.zip
+.DS_Store
+.vscode/
+.idea/
+*.user
