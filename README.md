@@ -1,4 +1,4 @@
-[markdown]
+
 # Model:Cycles 6CH — Companion VST3 / AU Plugin
 
 Free, open-source companion audio plugin (**VST3** & **AU**) for the **Elektron Model:Cycles 6-Channel USB Audio mod** (*Modded-Cycles* / *ms-multi-output*).
